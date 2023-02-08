@@ -1,12 +1,12 @@
 package nl.mrooding.state
 
-import akka.util.ByteString
 import nl.mrooding.data.AvroGenericRecordWriter
 import org.apache.avro.Schema
 import org.apache.avro.generic.{GenericDatumReader, GenericDatumWriter, GenericRecord}
-import org.apache.avro.io.{DecoderFactory, EncoderFactory}
+import org.apache.avro.io.{BinaryEncoder, DecoderFactory, EncoderFactory}
 import org.apache.flink.api.common.typeutils._
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
+import org.apache.commons.io.output.ByteArrayOutputStream
 
 trait CustomAvroSerializer[T <: AvroGenericRecordWriter] extends TypeSerializer[T] with Serializable {
   def stateSchema: Option[Schema]
@@ -17,15 +17,16 @@ trait CustomAvroSerializer[T <: AvroGenericRecordWriter] extends TypeSerializer[
   override def serialize(instance: T, target: DataOutputView): Unit = {
     val genericRecord = instance.toGenericRecord
 
-    val builder = ByteString.newBuilder
-    val avroEncoder = EncoderFactory.get().binaryEncoder(builder.asOutputStream, null)
+    val outputStream: ByteArrayOutputStream = new ByteArrayOutputStream()
+    val avroEncoder: BinaryEncoder = EncoderFactory.get().binaryEncoder(outputStream, null)
+
     new GenericDatumWriter[GenericRecord](genericRecord.getSchema).write(genericRecord, avroEncoder)
     avroEncoder.flush()
 
-    val blob = builder.result().toArray
+    val result = outputStream.toByteArray
 
-    target.writeInt(blob.length)
-    target.write(blob)
+    target.writeInt(result.length)
+    target.write(result)
   }
 
   override def deserialize(source: DataInputView): T = {

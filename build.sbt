@@ -2,7 +2,7 @@ name := "flink-stateful-wordcount"
 
 version := "0"
 
-scalaVersion in ThisBuild := "2.11.11"
+scalaVersion in ThisBuild := "2.12.12"
 
 scalacOptions := Seq(
   "-encoding", "utf8",
@@ -15,9 +15,9 @@ scalacOptions := Seq(
   "-Xlog-reflective-calls"
 )
 
-val flinkVersion = "1.8.0"
+val flinkVersion = "1.16.0"
 
-libraryDependencies += "org.apache.avro"         %    "avro"                                 % "1.8.2"
+libraryDependencies += "org.apache.avro"         %    "avro"                                 % "1.11.0"
 libraryDependencies += "org.apache.flink"        %%   "flink-streaming-scala"                % flinkVersion      % Provided
 
 // make run command include the provided dependencies
